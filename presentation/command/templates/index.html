@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Texture List</title>
+    <style>
+        table, td, th {
+            border: 1px #000 solid;
+            border-collapse: collapse;
+        }
+        img {
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <h1>Texture List</h1>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Image</th>
+            <th>Path</th>
+        </tr>
+        {{ range $i, $v := . }}
+            <tr>
+                <td>{{ $v.Name }}</td>
+                <td style="text-align: center"><img src="{{ $v.Path }}" style="width: 30px; height: 30px;"/></td>
+                <td>[<a href="{{ $v.Path }}" target="_blank">LINK</a>] {{ $v.Path }}</td>
+            </tr>
+        {{ end }}
+    </table>
+</body>
+</html>

@@ -1,0 +1,8 @@
+.env
+.env.test
+/.idea
+*_mock.go
+/resources/*
+!/resources/.gitkeep
+/index.html
+/texture-list-generator
