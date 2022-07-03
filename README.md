@@ -2,6 +2,9 @@
 
 Generates a list of textures (png, jpg, gif) under the current folder (recursively) in html.
 
+# Download
+
+https://github.com/t-kuni/texture-list-generator/releases
 
 # Usage
 
@@ -9,19 +12,25 @@ Generates a list of textures (png, jpg, gif) under the current folder (recursive
 texture-list-generator
 ```
 
-# Build
+# For Developer
+
+## Requirements
+
+* go 1.18+
+
+## Build
 
 ```bash
 make build
 ```
 
-# Run
+## Run
 
 ```bash
 go run ./main.go
 ```
 
-# Run test
+## Run test
 
 ```bash
 make test
