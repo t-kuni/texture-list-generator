@@ -14,20 +14,131 @@
     </style>
 </head>
 <body>
-    <h1>Texture List</h1>
-    <table>
+    <div style="margin-bottom: 10px">
+        <span style="margin-right: 10px">Search: <input type="text" id="search" placeholder="Search" oninput="onInputSearch()" /></span>
+        <span style="margin-right: 10px">
+            Size: <select id="size" oninput="onInputSearch()">
+                <option value="S" selected>小</option>
+                <option value="M">中</option>
+                <option value="L">大</option>
+            </select>
+        </span>
+        <span style="margin-right: 10px">
+            背景色: <select id="color" oninput="onInputSearch()">
+                <option value="white" selected>白</option>
+                <option value="black">黒</option>
+            </select>
+        </span>
+    </div>
+    <div style="margin-bottom: 10px">
+        Count: <span id="count"></span>
+    </div>
+    <table id="table">
         <tr>
             <th>Name</th>
             <th>Image</th>
             <th>Path</th>
         </tr>
-        {{ range $i, $v := . }}
-            <tr>
-                <td>{{ $v.Name }}</td>
-                <td style="text-align: center"><img src="{{ $v.Path }}" style="width: 30px; height: 30px;"/></td>
-                <td>[<a href="{{ $v.Path }}" target="_blank">LINK</a>] {{ $v.Path }}</td>
-            </tr>
-        {{ end }}
     </table>
+    <div id="scroll-detector"></div>
+    <script>
+        const textures = {{ unescapeJS . }}
+        const sizeMap = {
+            S: 50,
+            M: 100,
+            L: 200
+        }
+
+        let currentPage = 1;
+        let pageSize = 50;
+        let searchedTextures = [];
+
+        let timeoutId = null;
+        function onInputSearch() {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            timeoutId = setTimeout(() => {
+                const search = document.querySelector('#search').value;
+                clearTableWithoutHeader();
+                searchedTextures = searchTextures(search);
+                currentPage = 1;
+                renderSearchedTextureCount(searchedTextures.length)
+                renderTexturesToTable(currentPage);
+            }, 500);
+        }
+
+        function searchTextures(search) {
+            const searchLower = search.trim().toLowerCase()
+            if (searchLower === "") {
+                return textures
+            }
+            const filtered = textures.filter(texture => {
+                return texture.path.toLowerCase().includes(searchLower)
+            })
+            return filtered
+        }
+
+        function clearTableWithoutHeader() {
+            const table = document.querySelector('table');
+            const rows = table.querySelectorAll('tr');
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                row.remove();
+            }
+        }
+
+        function renderTexturesToTable(page) {
+            const table = document.querySelector('table');
+            const size = getSize();
+            const color = document.querySelector('#color').value;
+            for (let i = (page - 1) * pageSize; i < page * pageSize; i++) {
+                const texture = searchedTextures[i];
+                const row = document.createElement('tr');
+                const name = document.createElement('th');
+                const image = document.createElement('td');
+                const path = document.createElement('td');
+                name.innerText = texture.name;
+                image.innerHTML = `<a href="${texture.path}" target="_blank"><img src="${texture.path}" width="${size}" height="${size}" loading="lazy" style="background-color: ${color};"/></a>`;
+                path.innerText = texture.path;
+                row.appendChild(name);
+                row.appendChild(image);
+                row.appendChild(path);
+                table.appendChild(row);
+            }
+        }
+
+        function renderSearchedTextureCount(count) {
+            const countElement = document.querySelector('#count');
+            countElement.innerText = count;
+        }
+
+        const scrollDetector = document.getElementById('scroll-detector');
+        ['resize','scroll','load'].forEach( eventName => {
+            window.addEventListener(eventName, event => {
+                if (isScrolledIntoView(scrollDetector)) {
+                    currentPage++;
+                    renderTexturesToTable(currentPage);
+                }
+            });
+        });
+
+        function isScrolledIntoView(el) {
+            let rect = el.getBoundingClientRect();
+            let elemTop = rect.top;
+            let elemBottom = rect.bottom;
+
+            // Only completely visible elements return true:
+            let isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
+            // Partially visible elements return true:
+            //isVisible = elemTop < window.innerHeight && elemBottom >= 0;
+            return isVisible;
+        }
+
+        function getSize() {
+            const size = document.getElementById('size').value;
+            return sizeMap[size];
+        }
+    </script>
 </body>
 </html>

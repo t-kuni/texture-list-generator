@@ -2,6 +2,7 @@ package command
 
 import (
 	_ "embed"
+	"encoding/json"
 	"github.com/samber/do"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
@@ -26,7 +27,13 @@ func NewRootCommand(i *do.Injector) (*RootCommand, error) {
 		Long:  `RootCommand`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			htmlTmpl := string(htmlTmplByte)
-			t := template.Must(template.New("todos").Parse(htmlTmpl))
+			t, err := template.New("todos").
+				Funcs(template.FuncMap{"unescapeJS": func(s string) template.JS {
+					return template.JS(s)
+				}}).Parse(htmlTmpl)
+			if err != nil {
+				return err
+			}
 
 			paths, err := filer.FindFilePaths([]string{".png", ".jpg", ".jpeg", ".gif"})
 			if err != nil {
@@ -40,7 +47,12 @@ func NewRootCommand(i *do.Injector) (*RootCommand, error) {
 				}
 			})
 
-			err = t.Execute(os.Stdout, textures)
+			texturesJson, err := json.Marshal(textures)
+			if err != nil {
+				return err
+			}
+
+			err = t.Execute(os.Stdout, string(texturesJson))
 			if err != nil {
 				return err
 			}
@@ -54,6 +66,6 @@ func NewRootCommand(i *do.Injector) (*RootCommand, error) {
 }
 
 type Texture struct {
-	Path string
-	Name string
+	Path string `json:"path"`
+	Name string `json:"name"`
 }
